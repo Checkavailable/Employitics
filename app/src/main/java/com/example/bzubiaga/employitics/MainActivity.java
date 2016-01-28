@@ -1,5 +1,6 @@
 package com.example.bzubiaga.employitics;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.design.widget.TabLayout;
@@ -140,6 +141,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
@@ -156,11 +158,11 @@ public class MainActivity extends AppCompatActivity {
             // Return a PlaceholderFragment (defined as a static inner class below).
             switch (position) {
                 case 0:
-                    return ListActivity.newInstance(position + 1);
+                    return NewNewList.newInstance(position + 1);
                 case 1:
-                    return ListActivity.newInstance(position + 1);
+                    return NewNewList.newInstance(position + 1);
                 case 2:
-                    return ListActivity.newInstance(position + 1);
+                    return NewNewList.newInstance(position + 1);
             }
             return null;
         }
@@ -183,5 +185,6 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         }
+
     }
 }

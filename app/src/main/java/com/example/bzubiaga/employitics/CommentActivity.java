@@ -58,7 +58,7 @@ public class CommentActivity extends AppCompatActivity implements AbsListView.On
         p = (Post) bundle.getParcelable("Post");
         position = bundle.getInt("position");
         String content= p.getContent();
-        final boolean like = p.isLike();
+        final boolean like = p.isisLike();
         final String key_post = p.getKey();
         user = this.getSharedPreferences("User_Prefs", 0);
         company = user.getString("company", "null");
@@ -86,7 +86,7 @@ public class CommentActivity extends AppCompatActivity implements AbsListView.On
         }
 
         likeView = (TextView) headerList.findViewById(R.id.likes);
-        likeView.setText(p.getVotes());
+        likeView.setText(Integer.toString(p.getVotes()));
         listView.addHeaderView(headerList);
         listView.setOnScrollListener(this);
 
@@ -110,14 +110,14 @@ public class CommentActivity extends AppCompatActivity implements AbsListView.On
                             .addChildEventListener(new ChildEventListener() {
                                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                                     Comment comment = new Comment();
-                                    comment.setContent((String) dataSnapshot.child("Comment").child("content").getValue());
-                                    comment.setVotes((String) dataSnapshot.child("Comment").child("votes").getValue());
+                                    comment.setContent((String) dataSnapshot.child("content").getValue());
+                                    comment.setVotes((int)(long) dataSnapshot.child("votes").getValue());
                                     comment.setKey((String) dataSnapshot.getKey());
-                                    comment.setParentKey((String) dataSnapshot.child("Comment").child("parentKey").getValue());
-                                    comment.setTime((long) dataSnapshot.child("Comment").child("date").getValue());
-                                    comment.setAuthor((String) dataSnapshot.child("Comment").child("author").getValue());
-                                    comment.setName((String) dataSnapshot.child("Comment").child("name").getValue());
-                                    comment.setImage((String) dataSnapshot.child("Comment").child("image").getValue());
+                                    comment.setParentKey((String) dataSnapshot.child("parentKey").getValue());
+                                    comment.setTime((long) dataSnapshot.child("date").getValue());
+                                    comment.setAuthor((String) dataSnapshot.child("author").getValue());
+                                    comment.setName((String) dataSnapshot.child("name").getValue());
+                                    comment.setImage((String) dataSnapshot.child("image").getValue());
                                     String check = comment.getKey();
                                     comment.setLike(favorites.contains(check));
                                     adapter.add(comment);
@@ -189,12 +189,10 @@ public class CommentActivity extends AppCompatActivity implements AbsListView.On
                 }
 
 
-
-
                 Comment comment = new Comment(text.getText().toString(),userId, ServerValue.TIMESTAMP,name,image,key_post);
                 ref = ref.push();
                 final String keyComment = ref.getKey();
-                ref.child("Comment").setValue(comment);
+                ref.setValue(comment);
                 text.setText("");
                 listView.smoothScrollToPosition(adapter.getCount());
 
@@ -214,18 +212,17 @@ public class CommentActivity extends AppCompatActivity implements AbsListView.On
                 });
 
                 //add +1 to  comments on database
-                int comments = Integer.parseInt(p.getCommentInt()) + 1;
-                p.setCommentInt(Integer.toString(comments));
+                int comments = p.getCommentInt() + 1;
+                p.setCommentInt(comments);
                 final String postID = p.getKey();
-                Firebase postRef = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getKey() + "/Post/");
+                Firebase postRef = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getKey());
                 postRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
                         //add +1 to  comments on database
-                        String commentString = ((String) snapshot.child("commentInt").getValue());
-                        int commentsInt = Integer.parseInt(commentString) + 1;
-                        commentString = Integer.toString(commentsInt);
-                        snapshot.getRef().child("commentInt").setValue(commentString);
+                        int commentVote = ((int) (long)snapshot.child("commentInt").getValue());
+                        int commentsInt = (commentVote) + 1;
+                        snapshot.getRef().child("commentInt").setValue(commentsInt);
                     }
 
                     @Override
@@ -264,61 +261,62 @@ public class CommentActivity extends AppCompatActivity implements AbsListView.On
         switch (item.getItemId()) {
 
             case R.id.action_favorite:
-                if(!p.isLike()) {
-                    p.setLike(true);
-                    item.setIcon(R.drawable.ic_favorite_white_24dp);
-                    int votes = Integer.parseInt(p.getVotes()) + 1;
-                    //like.setText(Integer.toString(votes));
-                    p.setVotes(Integer.toString(votes));
-                    likeView.setText(Integer.toString(votes));
-                    final String postID = p.getKey();
-                    Firebase ref = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getKey() + "/Post/");
-                    ref.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot snapshot) {
-                            //add +1 to likes on database
-                            String voteString = ((String) snapshot.child("votes").getValue());
-                            int votes = Integer.parseInt(voteString) + 1;
-                            voteString = Integer.toString(votes);
-                            snapshot.getRef().child("votes").setValue(voteString);
+                try {
+                    if(!p.isLike("074c2729-595c-4396-a41b-7c2c1cb00e69", "todo")) {//TODO pass post key
+                        //p.setLike(true);
+                        item.setIcon(R.drawable.ic_favorite_white_24dp);
+                        int votes = p.getVotes() + 1;
+                        //like.setText(Integer.toString(votes));
+                        p.setVotes(votes);
+                        likeView.setText(Integer.toString(votes));
+                        final String postID = p.getKey();
+                        Firebase ref = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getKey());
+                        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot snapshot) {
+                                //add +1 to likes on database
+                                int voteString = ((int)(long) snapshot.child("votes").getValue());
+                                int votes = voteString+ 1;
+                                snapshot.getRef().child("votes").setValue(votes);
 
-                            //add post ID to User's database of likes
-                            Firebase userRef = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/users");
-                            userRef.child(userString).child("Favorites").child(postID).setValue("true");
-                        }
+                                //add post ID to User's database of likes
+                                Firebase userRef = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/users");
+                                userRef.child(userString).child("Favorites").child(postID).setValue("true");
+                            }
 
-                        @Override
-                        public void onCancelled(FirebaseError firebaseError) {
-                        }
-                    });
+                            @Override
+                            public void onCancelled(FirebaseError firebaseError) {
+                            }
+                        });
 
-                }else{
-                    p.setLike(false);
-                    item.setIcon(R.drawable.ic_favorite_outline_white_24dp);
-                    int votes = Integer.parseInt(p.getVotes()) - 1;
-                    //like.setText(Integer.toString(votes));
-                    p.setVotes(Integer.toString(votes));
-                    likeView.setText(Integer.toString(votes));
-                    final String postID = p.getKey();
-                    Firebase ref = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getKey() + "/Post/");
-                    ref.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot snapshot) {
-                            //add +1 to likes on database
-                            String voteString = ((String) snapshot.child("votes").getValue());
-                            int votes = Integer.parseInt(voteString) - 1;
-                            voteString = Integer.toString(votes);
-                            snapshot.getRef().child("votes").setValue(voteString);
+                    }else{
+                        //p.setLike(false);
+                        item.setIcon(R.drawable.ic_favorite_outline_white_24dp);
+                        int votes = p.getVotes() - 1;
+                        p.setVotes(votes);
+                        likeView.setText(Integer.toString(votes));
+                        final String postID = p.getKey();
+                        Firebase ref = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getKey());
+                        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot snapshot) {
+                                //add +1 to likes on database
+                                int voteString = ((int)(long) snapshot.child("votes").getValue());
+                                int votes = voteString - 1;
+                                snapshot.getRef().child("votes").setValue(votes);
 
-                            //add post ID to User's database of likes
-                            Firebase userRef = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/users");
-                            userRef.child(userString).child("Favorites").child(postID).setValue(null);
-                        }
+                                //add post ID to User's database of likes
+                                Firebase userRef = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/users");
+                                userRef.child(userString).child("Favorites").child(postID).setValue(null);
+                            }
 
-                        @Override
-                        public void onCancelled(FirebaseError firebaseError) {
-                        }
-                    });
+                            @Override
+                            public void onCancelled(FirebaseError firebaseError) {
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
                 return true;
 
@@ -358,8 +356,12 @@ public class CommentActivity extends AppCompatActivity implements AbsListView.On
         MenuItem item = menu.findItem(R.id.action_favorite);
         Bundle bundle = getIntent().getExtras();
         Post post = (Post) bundle.getParcelable("Post");
-        if(post.isLike()){item.setIcon(R.drawable.ic_favorite_white_24dp);}
-        else{item.setIcon(R.drawable.ic_favorite_outline_white_24dp);}
+        try {
+            if(post.isLike("074c2729-595c-4396-a41b-7c2c1cb00e69","todo")){item.setIcon(R.drawable.ic_favorite_white_24dp);}//TODO passpost key
+            else{item.setIcon(R.drawable.ic_favorite_outline_white_24dp);}
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return super.onCreateOptionsMenu(menu);
     }
 

@@ -19,15 +19,15 @@
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:id="@+id/like"
-            android:drawableBottom="@drawable/ic_favorite_outline_white_18dp"
-            android:text="789"
+            android:drawableBottom="@drawable/ic_favorite_outline_blue_grey_900_18dp"
+            android:text="123"
             android:stateListAnimator="@null"
             android:clickable="true"
             android:textAlignment="center"
             android:shadowColor="#ffffff"
             android:backgroundTint="#eeeeee"
             android:textSize="14dp"
-            android:textColor="#455a64" />
+            android:textColor="#263238" />
 
     </LinearLayout>
 

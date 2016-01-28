@@ -18,6 +18,8 @@ import com.firebase.client.FirebaseError;
 import com.firebase.client.ServerValue;
 import com.firebase.client.ValueEventListener;
 
+import java.util.Map;
+
 public class InputActivity extends AppCompatActivity {
 
     @Override
@@ -33,7 +35,7 @@ public class InputActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_post, menu);
-        final MenuItem mItem=menu.findItem(R.id.action_post);
+        final MenuItem mItem = menu.findItem(R.id.action_post);
         final EditText text = (EditText) findViewById(R.id.editText);
         final CheckBox checkbox = (CheckBox) findViewById(R.id.checkBox);
 
@@ -45,14 +47,14 @@ public class InputActivity extends AppCompatActivity {
                         String company = user.getString("company", "null");
                         String userId = user.getString("userID", "null");
                         String name = user.getString("name", "null");
-                        if (!checkbox.isChecked()){
-                         name = "";
+                        if (!checkbox.isChecked()) {
+                            name = "";
                         }
-                        Post post = new Post(text.getText().toString(),userId,name,ServerValue.TIMESTAMP);
-                        Firebase fbPost= new Firebase(getString(R.string.firebase_url)+"/"+ company + "/Posts");
+                        PosttoPush post = new PosttoPush(text.getText().toString(), userId, name, ServerValue.TIMESTAMP);
+                        Firebase fbPost = new Firebase(getString(R.string.firebase_url) + "/" + company + "/Posts");
                         fbPost = fbPost.push();
                         final String keyPost = fbPost.getKey();
-                        fbPost.child("Post").setValue(post);
+                        fbPost.setValue(post);
 
                         Firebase ref = new Firebase(getString(R.string.firebase_url));
                         ref.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -78,7 +80,7 @@ public class InputActivity extends AppCompatActivity {
 
         text.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence str, int start, int count, int after)    {
+            public void beforeTextChanged(CharSequence str, int start, int count, int after) {
 
             }
 
@@ -89,9 +91,9 @@ public class InputActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable str) {
-                if(str.toString().trim().length()>0){
+                if (str.toString().trim().length() > 0) {
                     mItem.setIcon(R.drawable.ic_send_yellow_24dp);
-                }else{
+                } else {
                     mItem.setIcon(R.drawable.ic_send_white_24dp);
                 }
             }
@@ -111,11 +113,92 @@ public class InputActivity extends AppCompatActivity {
             // Put some meat on the sandwich
             SharedPreferences user = getSharedPreferences("User_Prefs", 0);
             String name = user.getString("name", "null");
-            checkbox.setText("Post as "+ name);
+            checkbox.setText("Post as " + name);
 
-        }else{
+        } else {
             // Remove the meat
             checkbox.setText("Post anonymously");
+        }
+
+    }
+
+    public class PosttoPush{
+        private String author;
+
+        public String getAuthor() {
+            return author;
+        }
+
+        public void setAuthor(String author) {
+            this.author = author;
+        }
+
+        public int getCommentInt() {
+            return commentInt;
+        }
+
+        public void setCommentInt(int commentInt) {
+            this.commentInt = commentInt;
+        }
+
+        public String getContent() {
+            return content;
+        }
+
+        public void setContent(String content) {
+            this.content = content;
+        }
+
+        public Map getDate() {
+            return date;
+        }
+
+        public void setDate(Map date) {
+            this.date = date;
+        }
+
+        public int getFlagged() {
+            return flagged;
+        }
+
+        public void setFlagged(int flagged) {
+            this.flagged = flagged;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public int getVotes() {
+            return votes;
+        }
+
+        public void setVotes(int votes) {
+            this.votes = votes;
+        }
+
+        private int commentInt;
+        private String content;
+        private Map date;
+        private int flagged;
+        private String name;
+        private int votes;
+
+        PosttoPush(){}
+
+        public PosttoPush(String content, String author, String name, Map date) {
+            this.author = author;
+            this.content = content;
+            this.name = name;
+            this.date = date;
+            this.votes = 0;
+            this.commentInt = 0;
+            this.flagged = 0;
+
         }
 
     }

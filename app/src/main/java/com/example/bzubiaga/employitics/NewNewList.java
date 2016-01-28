@@ -13,7 +13,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -22,13 +21,12 @@ import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
-import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
 
 /**
  * Created by bzubiaga on 11/22/15.
  */
-public class ListActivity extends Fragment {
+public class NewNewList extends Fragment {
     /**
      * The fragment argument representing the section number for this
      * fragment.
@@ -36,20 +34,15 @@ public class ListActivity extends Fragment {
     private static final String ARG_SECTION_NUMBER = "section_number";
     private MainRowAdapter adapter = null;
 
-    protected String url = "";
-    protected String company = "";
-    protected String userString = "";
-
-
-    public ListActivity() {
+    public NewNewList() {
     }
 
     /**
      * Returns a new instance of this fragment for the given section
      * number.
      */
-    public static ListActivity newInstance(int sectionNumber) {
-        ListActivity fragment = new ListActivity();
+    public static NewNewList newInstance(int sectionNumber) {
+        NewNewList fragment = new NewNewList();
         Bundle args = new Bundle();
         args.putInt(ARG_SECTION_NUMBER, sectionNumber);
         fragment.setArguments(args);
@@ -60,51 +53,78 @@ public class ListActivity extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        View rootView = inflater.inflate(R.layout.list_main, container, false);
-        final ListView listView = (ListView) rootView.findViewById(R.id.listView);
-        List<Post> postList = new ArrayList<Post>();
-        adapter = new MainRowAdapter(getActivity(), R.layout.mainrowadapter, postList);
-        listView.setAdapter(adapter);
-        url = getString(R.string.firebase_url);
 
+        View rootView = inflater.inflate(R.layout.list_main, container, false);
+
+        // Get ListView object from xml
+        final ListView listView = (ListView) rootView.findViewById(R.id.listView);
+
+        List<Post> postList = new ArrayList<Post>();
+
+        // Create a new Adapter
+        adapter = new MainRowAdapter(getActivity(), R.layout.mainrowadapter, postList);
+
+        // Assign adapter to ListView
+        listView.setAdapter(adapter);
+
+
+        // Use Firebase to populate the list.
         Firebase ref = new Firebase(getString(R.string.firebase_url));
         AuthData authData = ref.getAuth();
+        final String url = getString(R.string.firebase_url);
 
-
-        if (authData != null) {
+        if (authData !=null) {
             SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);
-            company = user.getString("company", "null");
-            userString = user.getString("userID", "null");
-
-//            FOR POPULAR LIST
-//            Firebase ref = new Firebase(url + "/" + company + "/Posts");
-//            Query queryRef = ref.orderByChild("votes");
-//            queryRef
-
-            Firebase mRef = new Firebase(url + "/" + company + "/Posts");
-
-            mRef.addValueEventListener(new ValueEventListener() {
+            final String company = user.getString("company", "null");
+            String userString = user.getString("userID", "null");
+            Firebase userRef = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/users/"+userString+"/Favorites");
+            // Attach an listener to read the data at our posts reference
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                HashSet<String> favorites = new HashSet<>();
                 @Override
                 public void onDataChange(DataSnapshot snapshot) {
-                    for (DataSnapshot postSnapshot : snapshot.getChildren()) {
-                        Post post = new Post();
-                        post.setContent((String) postSnapshot.child("content").getValue());
-                        post.setVotes((int) (long) postSnapshot.child("votes").getValue());
-                        post.setKey((String) postSnapshot.getKey());
-                        post.setTime((long) postSnapshot.child("date").getValue());
-                        post.setAuthor((String) postSnapshot.child("author").getValue());
-                        post.setName((String) postSnapshot.child("name").getValue());
-                        post.setCommentInt((int) (long) postSnapshot.child("commentInt").getValue());
-                        adapter.insert(post, 0);
+                    for (DataSnapshot  postSnapshot: snapshot.getChildren()) {
+                        favorites.add((String) postSnapshot.getKey());
                     }
-                }
 
+                    new Firebase(url + "/" + company + "/Posts")
+                            .addChildEventListener(new ChildEventListener() {
+                                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                                    Post post = new Post();
+                                    post.setContent((String) dataSnapshot.child("content").getValue());
+                                    post.setVotes((int)(long) dataSnapshot.child("votes").getValue());
+                                    post.setKey((String) dataSnapshot.getKey());
+                                    post.setTime((long) dataSnapshot.child("date").getValue());
+                                    post.setAuthor((String) dataSnapshot.child("author").getValue());
+                                    post.setName((String) dataSnapshot.child("name").getValue());
+                                    post.setCommentInt((int)(long) dataSnapshot.child("commentInt").getValue());
+                                    String check = post.getKey();
+                                    post.setsetLike(favorites.contains(check));
+                                    adapter.insert(post,0);
+                                }
+
+                                public void onChildRemoved(DataSnapshot dataSnapshot) {
+                                    //adapter.remove((String) dataSnapshot.child("Post").child("content").getValue());
+                                }
+
+                                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                                }
+
+                                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                                }
+
+                                public void onCancelled(FirebaseError firebaseError) {
+                                }
+                            });
+
+                }
                 @Override
                 public void onCancelled(FirebaseError firebaseError) {
                     System.out.println("The read failed: " + firebaseError.getMessage());
                 }
             });
         }
+
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -126,6 +146,7 @@ public class ListActivity extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
+        Log.w("First Post","First Post");
 
         if (requestCode == 1) {
             if(resultCode == Activity.RESULT_OK){
@@ -135,7 +156,7 @@ public class ListActivity extends Fragment {
                 Post backPost = bundle.getParcelable("Post");
                 Post p = adapter.getItem(position);
                 p.setVotes(backPost.getVotes());
-                //p.setLike(backPost.isLike("074c2729-595c-4396-a41b-7c2c1cb00e69"));
+                p.setsetLike(backPost.isisLike());
                 p.setCommentInt(backPost.getCommentInt());
                 adapter.notifyDataSetChanged();
 
@@ -144,8 +165,5 @@ public class ListActivity extends Fragment {
                 //Write your code if there's no result
             }
         }
-    }
-
-
-
+    }//on
 }

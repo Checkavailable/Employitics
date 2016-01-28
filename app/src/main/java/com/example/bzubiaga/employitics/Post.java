@@ -1,27 +1,40 @@
 package com.example.bzubiaga.employitics;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
+import android.widget.Button;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by bzubiaga on 11/28/15.
  */
+@JsonIgnoreProperties(ignoreUnknown=true)
 public class Post implements Parcelable {
-    private String content;
-    private String votes;
-    private String key;
     private String author;
-    private String name;
-    private String commentInt;
+    private int commentInt;
+    private String content;
     private Map date;
+    private int flagged;
+    private String name;
+    private int votes;
     private long time;
-    private boolean like = false;
+    private boolean like;
 
-
+    private String key;
     private static final int SECOND_MILLIS = 1000;
     private static final int MINUTE_MILLIS = 60 * SECOND_MILLIS;
     private static final int HOUR_MILLIS = 60 * MINUTE_MILLIS;
@@ -36,10 +49,12 @@ public class Post implements Parcelable {
     public Post(String content, String author, String name, Map date) {
         this.author = author;
         this.content = content;
-        this.votes = "0";
-        this.commentInt = "0";
-        this.date = date;
         this.name = name;
+        this.date = date;
+        this.votes = 0;
+        this.commentInt = 0;
+        this.flagged = 0;
+
     }
 
     public String getContent() {
@@ -50,12 +65,20 @@ public class Post implements Parcelable {
         this.content = name;
     }
 
-    public String getVotes() {
+    public int getVotes() {
         return votes;
     }
 
-    public void setVotes(String votes) {
+    public void setVotes(int votes) {
         this.votes = votes;
+    }
+
+    public int getFlagged() {
+        return flagged;
+    }
+
+    public void setFlagged(int votes) {
+        this.flagged = votes;
     }
 
     public String getKey() {
@@ -66,11 +89,11 @@ public class Post implements Parcelable {
         this.key = key;
     }
 
-    public String getCommentInt() {
+    public int getCommentInt() {
         return commentInt;
     }
 
-    public void setCommentInt(String commentInt) {
+    public void setCommentInt(int commentInt) {
         this.commentInt = commentInt;
     }
 
@@ -90,22 +113,47 @@ public class Post implements Parcelable {
         this.name= name;
     }
 
+    @JsonIgnore
     public Map getDate() {
         return date;
     }
 
-    public boolean isLike() {
+    public boolean isLike(String userString, final String finalPostRef)  throws InterruptedException {
+
+        final boolean[] likeValue = {false};
+
+        Firebase ref = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/users/"+userString+"/Favorites/"+finalPostRef);
+
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                likeValue[0] = snapshot.exists();
+                Log.w("like withiin Snapshot",String.valueOf(likeValue[0]));
+            }
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+            }
+        });
+
+        Log.w("like returned",String.valueOf(likeValue[0]));
+        return likeValue[0];
+    }
+
+    public boolean isisLike() {
         return like;
     }
 
-    public void setLike(boolean like) {
+    public void setsetLike(boolean like) {
         this.like = like;
     }
 
+
+    @JsonIgnore
     public void setTime(long time){
         this.time = time;
     }
 
+    @JsonIgnore
     public String getTimePast() {
 
         if (time< 1000000000000L) {
@@ -157,30 +205,31 @@ public class Post implements Parcelable {
 
     }
 
+
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(content);
-        dest.writeString(votes);
+        dest.writeInt(votes);
         dest.writeString(key);
         dest.writeString(author);
         dest.writeString(name);
-        dest.writeString(commentInt);
+        dest.writeInt(commentInt);
 //        dest.writeMap(date);
         dest.writeLong(time);
-        dest.writeByte((byte) (like ? 1 : 0));     //if myBoolean == true, byte == 1
+        //dest.writeByte((byte) (like ? 1 : 0));     //if myBoolean == true, byte == 1
     }
 
     // We reconstruct the object reading from the Parcel data
     public Post(Parcel p) {
         content = p.readString();
-        votes = p.readString();
+        votes = p.readInt();
         key = p.readString();
         author = p.readString();
         name = p.readString();
-        commentInt = p.readString();
+        commentInt = p.readInt();
 //        p.readMap(date,Map);
         time = p.readLong();
-        like = p.readByte() != 0;
+        //like = p.readByte() != 0;
     }
 
     // We need to add a Creator

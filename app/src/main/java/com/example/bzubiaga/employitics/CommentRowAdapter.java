@@ -21,7 +21,9 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by bzubiaga on 11/28/15.
@@ -62,7 +64,7 @@ public class CommentRowAdapter extends ArrayAdapter<Comment> {
             }
 
             if (like != null) {
-                like.setText(p.getVotes());
+                like.setText(Integer.toString(p.getVotes()));
                 if (p.isLike()){
                     like.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.ic_favorite_red_600_18dp);
                     like.setTextColor(Color.parseColor("#E53935"));
@@ -82,18 +84,26 @@ public class CommentRowAdapter extends ArrayAdapter<Comment> {
 
             }
             if (tt5 != null) {
-                String image = p.getImage();
-                    int id = 0;
-                    try {
-                        id = R.drawable.class.getField(image).getInt(null);
-                        tt5.setImageResource(id);
-                    } catch (IllegalAccessException e) {
-                        tt5.setImageResource(R.drawable.bear_128px);
-                        e.printStackTrace();
-                    } catch (NoSuchFieldException e) {
-                        tt5.setImageResource(R.drawable.bear_128px);
-                        e.printStackTrace();
-                    }
+
+
+                Resources res = v.getResources();
+                String mDrawableName = "bat_128px";
+                mDrawableName = p.getImage();
+                int resID = res.getIdentifier(mDrawableName , "drawable", getContext().getPackageName());
+                tt5.setImageResource(resID);
+
+//                String image = p.getImage();
+//                    int id = 0;
+//                    try {
+//                        id = R.drawable.class.getField(image).getInt(null);
+//                        tt5.setImageResource(id);
+//                    } catch (IllegalAccessException e) {
+//                        tt5.setImageResource(R.drawable.bat_128px);
+//                        e.printStackTrace();
+//                    } catch (NoSuchFieldException e) {
+//                        tt5.setImageResource(R.drawable.bat_128px);
+//                        e.printStackTrace();
+//                    }
             }
         }
 
@@ -109,21 +119,20 @@ public class CommentRowAdapter extends ArrayAdapter<Comment> {
                     Button like = (Button) view.findViewById(R.id.like);
                     like.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.ic_favorite_red_600_18dp);
                     like.setTextColor(Color.parseColor("#E53935"));
-                    int votes = Integer.parseInt(p.getVotes()) + 1;
+                    int votes = p.getVotes() + 1;
                     like.setText(Integer.toString(votes));
-                    p.setVotes(Integer.toString(votes));
+                    p.setVotes(votes);
                     final String postID = p.getKey();
                     SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);
                     String company = user.getString("company", "null");
-                    Firebase ref = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getParentKey()+ "/Comments/" + p.getKey()+ "/Comment");
+                    Firebase ref = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getParentKey()+ "/Comments/" + p.getKey());
                     ref.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot snapshot) {
                             //add +1 to likes on database
-                            String voteString = ((String) snapshot.child("votes").getValue());
-                            int votes = Integer.parseInt(voteString) + 1;
-                            voteString = Integer.toString(votes);
-                            snapshot.getRef().child("votes").setValue(voteString);
+                            int voteString = ((int)(long) snapshot.child("votes").getValue());
+                            int votes = voteString + 1;
+                            snapshot.getRef().child("votes").setValue(votes);
 
                             //add post ID to User's database of likes
                             SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);
@@ -142,21 +151,20 @@ public class CommentRowAdapter extends ArrayAdapter<Comment> {
                     Button like = (Button) view.findViewById(R.id.like);
                     like.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.ic_favorite_outline_blue_grey_900_18dp);
                     like.setTextColor(Color.parseColor("#263238"));
-                    int votes = Integer.parseInt(p.getVotes()) - 1;
+                    int votes = p.getVotes() - 1;
                     like.setText(Integer.toString(votes));
-                    p.setVotes(Integer.toString(votes));
+                    p.setVotes(votes);
                     final String postID = p.getKey();
                     SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);
                     String company = user.getString("company", "null");
-                    Firebase ref = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getParentKey() + "/Comments/"+p.getKey()+ "/Comment");
+                    Firebase ref = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getParentKey() + "/Comments/"+p.getKey());
                     ref.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot snapshot) {
                             //add +1 to likes on database
-                            String voteString = ((String) snapshot.child("votes").getValue());
-                            int votes = Integer.parseInt(voteString) - 1;
-                            voteString = Integer.toString(votes);
-                            snapshot.getRef().child("votes").setValue(voteString);
+                            int voteString = ((int)(long) snapshot.child("votes").getValue());
+                            int votes = voteString - 1;
+                            snapshot.getRef().child("votes").setValue(votes);
 
                             //add post ID to User's database of likes
                             SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);

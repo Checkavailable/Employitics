@@ -3,6 +3,7 @@ package com.example.bzubiaga.employitics;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +40,10 @@ public class MainRowAdapter extends ArrayAdapter<Post> {
 
         View v = convertView;
 
+        SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);
+        final String userString = user.getString("userID", "null");
+        String company = user.getString("company", "null");
+
         if (v == null) {
             LayoutInflater vi;
             vi = LayoutInflater.from(getContext());
@@ -59,14 +64,12 @@ public class MainRowAdapter extends ArrayAdapter<Post> {
             }
 
             if (like != null) {
-                like.setText(p.getVotes());
-                if (p.isLike()){
-                    like.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.ic_favorite_red_600_18dp);
-                    like.setTextColor(Color.parseColor("#E53935"));
-                }else{
-                    like.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.ic_favorite_outline_blue_grey_900_18dp);
-                    like.setTextColor(Color.parseColor("#263238"));
-                }
+                like.setText(Integer.toString(p.getVotes()));
+                    if (p.isisLike()){
+                        like.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.ic_favorite_red_600_18dp);
+                        like.setTextColor(Color.parseColor("#E53935"));
+
+                    }
             }
 
             if (tt3 != null) {
@@ -78,7 +81,7 @@ public class MainRowAdapter extends ArrayAdapter<Post> {
                 else{tt4.setText(" from "+ name);}
             }
             if (tt5 != null) {
-                tt5.setText(p.getCommentInt());
+                tt5.setText(Integer.toString(p.getCommentInt()));
             }
         }
 
@@ -89,73 +92,69 @@ public class MainRowAdapter extends ArrayAdapter<Post> {
             public void onClick(View view) {
                 int position = (Integer) view.getTag();
                 Post p = getItem(position);
-                if(!p.isLike()) {
-                    p.setLike(true);
-                    Button like = (Button) view.findViewById(R.id.like);
-                    like.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.ic_favorite_red_600_18dp);
-                    like.setTextColor(Color.parseColor("#E53935"));
-                    int votes = Integer.parseInt(p.getVotes()) + 1;
-                    like.setText(Integer.toString(votes));
-                    p.setVotes(Integer.toString(votes));
-                    final String postID = p.getKey();
-                    SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);
-                    String company = user.getString("company", "null");
-                    Firebase ref = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getKey() + "/Post/");
-                    ref.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot snapshot) {
-                            //add +1 to likes on database
-                            String voteString = ((String) snapshot.child("votes").getValue());
-                            int votes = Integer.parseInt(voteString) + 1;
-                            voteString = Integer.toString(votes);
-                            snapshot.getRef().child("votes").setValue(voteString);
 
-                            //add post ID to User's database of likes
-                            SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);
-                            String userString = user.getString("userID", "null");
-                            Firebase userRef = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/users");
-                            userRef.child(userString).child("Favorites").child(postID).setValue("true");
-                        }
+                    if(!p.isisLike()) {
+                        Button like = (Button) view.findViewById(R.id.like);
+                        like.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.ic_favorite_red_600_18dp);
+                        like.setTextColor(Color.parseColor("#E53935"));
+                        int votes = p.getVotes() + 1;
+                        like.setText(Integer.toString(votes));
+                        p.setVotes(votes);
+                        final String postID = p.getKey();
+                        SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);
+                        String company = user.getString("company", "null");
+                        Firebase ref = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getKey());
+                        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot snapshot) {
+                                //add +1 to likes on database
+                                int voteString = ((int) (long) snapshot.child("votes").getValue());
+                                int votes = (voteString) + 1;
+                                snapshot.getRef().child("votes").setValue(votes);
 
-                        @Override
-                        public void onCancelled(FirebaseError firebaseError) {
-                        }
-                    });
+                                //add post ID to User's database of likes
+                                SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);
+                                String userString = user.getString("userID", "null");
+                                Firebase userRef = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/users");
+                                userRef.child(userString).child("Favorites").child(postID).setValue("true");
+                            }
 
-                }else{
-                    p.setLike(false);
-                    Button like = (Button) view.findViewById(R.id.like);
-                    like.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.ic_favorite_outline_blue_grey_900_18dp);
-                    like.setTextColor(Color.parseColor("#263238"));
-                    int votes = Integer.parseInt(p.getVotes()) - 1;
-                    like.setText(Integer.toString(votes));
-                    p.setVotes(Integer.toString(votes));
-                    final String postID = p.getKey();
-                    SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);
-                    String company = user.getString("company", "null");
-                    Firebase ref = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getKey() + "/Post/");
-                    ref.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot snapshot) {
-                            //add +1 to likes on database
-                            String voteString = ((String) snapshot.child("votes").getValue());
-                            int votes = Integer.parseInt(voteString) - 1;
-                            voteString = Integer.toString(votes);
-                            snapshot.getRef().child("votes").setValue(voteString);
+                            @Override
+                            public void onCancelled(FirebaseError firebaseError) {
+                            }
+                        });
 
-                            //add post ID to User's database of likes
-                            SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);
-                            String userString = user.getString("userID", "null");
-                            Firebase userRef = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/users");
-                            userRef.child(userString).child("Favorites").child(postID).setValue(null);
-                        }
+                    }else{
+                        Button like = (Button) view.findViewById(R.id.like);
+                        like.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.ic_favorite_outline_blue_grey_900_18dp);
+                        like.setTextColor(Color.parseColor("#263238"));
+                        int votes = p.getVotes() - 1;
+                        like.setText(Integer.toString(votes));
+                        p.setVotes(votes);
+                        final String postID = p.getKey();
+                        SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);
+                        String company = user.getString("company", "null");
+                        Firebase ref = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/" + company + "/Posts/" + p.getKey());
+                        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot snapshot) {
+                                //add +1 to likes on database
+                                int voteString = ((int) (long) snapshot.child("votes").getValue());
+                                int votes = voteString - 1;
+                                snapshot.getRef().child("votes").setValue(votes);
 
-                        @Override
-                        public void onCancelled(FirebaseError firebaseError) {
-                        }
-                    });
-                }
+                                //add post ID to User's database of likes
+                                SharedPreferences user = getContext().getSharedPreferences("User_Prefs", 0);
+                                String userString = user.getString("userID", "null");
+                                Firebase userRef = new Firebase("https://glaring-fire-1308.firebaseio.com" + "/users");
+                                userRef.child(userString).child("Favorites").child(postID).setValue(null);
+                            }
 
+                            @Override
+                            public void onCancelled(FirebaseError firebaseError) {
+                            }
+                        });
+                    }
             }
 
         });

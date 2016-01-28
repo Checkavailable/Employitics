@@ -7,12 +7,12 @@ import java.util.Random;
  */
 public class ImageGenerator {
 
-    String[] imageArray = new String[]{"bat_128px.png","bear_128px.png","bee_128px.png","bird_128px.png","bug_128px.png","butterfly_128px.png","camel_128px.png",
-    "cat_128px.png", "cheetah_128px.png", "chicken_128px.png", "coala_128px.png", "cow_128px.png", "crocodile_128px.png", "dinosaur_128px.png", "dog_128px.png",
-    "dolphin_128px.png", "dove_128px.png", "duck_128px.png", "eagle_128px.png", "elephant_128px.png", "fish_128px.png", "flamingo_128px.png",
-    "fox_128px.png", "frog_128px.png", "giraffe_128px.png" , "gorilla_128px.png", "horse_128px.png", "kangoroo_128px.png", "leopard_128px.png", "lion_128px.png",
-    "monkey_128px.png", "mouse_128px.png", "panda_128px.png", "parrot_128px.png" , "penguin_128px.png", "shark_128px.png", "sheep_128px.png", "snake_128px.png",
-    "spider_128px.png", "squirrel_128px.png", "star_fish_128px.png", "tiger_128px.png", "turtle_128px.png", "wolf_128px.png", "zebra_128px.png"};
+    String[] imageArray = new String[]{"bat_128px","bear_128px","bee_128px","bird_128px","bug_128px","butterfly_128px","camel_128px",
+    "cat_128px", "cheetah_128px", "chicken_128px", "coala_128px", "cow_128px", "crocodile_128px", "dinosaur_128px", "dog_128px",
+    "dolphin_128px", "dove_128px", "duck_128px", "eagle_128px", "elephant_128px", "fish_128px", "flamingo_128px",
+    "fox_128px", "frog_128px", "giraffe_128px" , "gorilla_128px", "horse_128px", "kangoroo_128px", "leopard_128px", "lion_128px",
+    "monkey_128px", "mouse_128px", "panda_128px", "parrot_128px" , "penguin_128px", "shark_128px", "sheep_128px", "snake_128px",
+    "spider_128px", "squirrel_128px", "star_fish_128px", "tiger_128px", "turtle_128px", "wolf_128px", "zebra_128px"};
 
     public ImageGenerator() {}
 

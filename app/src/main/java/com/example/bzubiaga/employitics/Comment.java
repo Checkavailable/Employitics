@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public class Comment {
     private String content;
-    private String votes;
+    private int votes;
     private String key;
     private String author;
     private String image;
@@ -35,7 +35,7 @@ public class Comment {
     public Comment(String content, String author, Map date, String name, String image, String parentKey) {
         this.author = author;
         this.content = content;
-        this.votes = "0";
+        this.votes = 0;
         this.date = date;
         this.image = image;
         this.name = name;
@@ -50,11 +50,11 @@ public class Comment {
         this.content = name;
     }
 
-    public String getVotes() {
+    public int getVotes() {
         return votes;
     }
 
-    public void setVotes(String votes) {
+    public void setVotes(int votes) {
         this.votes = votes;
     }
 
